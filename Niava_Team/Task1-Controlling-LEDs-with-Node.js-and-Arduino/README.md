@@ -36,11 +36,6 @@ A simple web interface will be created to send requests to the **Node.js** serve
 - **Shahed** gained hands-on experience with **Arduino** and controlling hardware through serial inputs.
 - Together, they built a simple, yet powerful, example of integrating **web development** with **hardware** control.
 
-## Task
-1. Connect to the **Mirte** robot.
-2. Use the web interface to turn the LED on and off.
-3. Document and upload the code for the **Node.js** backend and **Arduino** sketch.
-
 ---
 
 This task serves as a fundamental introduction to combining **web development** with **robotics**. It sets the stage for more advanced tasks in the future, including the integration of additional sensors and actuators.
