@@ -1,7 +1,7 @@
 const HID = require("node-hid");
 const WebSocket = require("ws");
 const { port } = require("./serialPortConnector");
-const devices = HID.devices();
+
 let socket;
 
 const connectWebSocket = () => {
@@ -26,25 +26,36 @@ const connectWebSocket = () => {
 
 let joystick = null;
 
-for (let i = 0; i < devices.length; i++) {
-    if (
-        devices[i].product.includes("USB Joystick") &&
-        devices[i].vendorId == 121 &&
-        devices[i].productId == 6
-    ) {
-        console.log("port to joystick opened");
-        joystick = new HID.HID(121, 6);
-        connectWebSocket();
+async function connectToJoystick() {
+    const devices = HID.devices();
+    for (let i = 0; i < devices.length; i++) {
+        if (
+            devices[i].product.includes("USB Joystick") &&
+            devices[i].vendorId == 121 &&
+            devices[i].productId == 6
+        ) {
+            console.log("port to joystick opened");
+            joystick = await new HID.HID(121, 6);
+            connectWebSocket();
+            if (joystick != null) {
+                joystick.on("data", (data) => {
+                    control(JSON.stringify(data));
+                });
+            } else if (joystick == null) {
+                console.log("error opening joystick port");
+            }
+            break;
+        }
+    }
+    if (joystick == null) {
+        console.log("couldn't connect to joystick, retrying...");
+
+        setTimeout(() => {
+            connectToJoystick();
+        }, 3000);
     }
 }
-
-if (joystick != null) {
-    joystick.on("data", (data) => {
-        control(JSON.stringify(data));
-    });
-} else if (joystick == null) {
-    console.log("error opening joystick port");
-}
+connectToJoystick();
 
 let joyStickData = "";
 let lastLeft;
