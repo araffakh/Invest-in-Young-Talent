@@ -22,6 +22,8 @@ body {
     background-color: gray;
     color: white;
     position: relative;
+    padding: 10px;
+    position: relative;
 }
 
 .sidebar-button {
@@ -37,22 +39,6 @@ body {
 
 .image {
     padding: 10px;
-}
-
-.content {
-    width: 100%;
-}
-
-.joystick-data-page {
-    width: 100%;
-}
-
-.sidebar {
-    padding: 10px;
-    position: relative;
-}
-
-.image {
     width: 100%;
     text-align: center;
 }
@@ -70,10 +56,7 @@ body {
     bottom: 10px;
 }
 
-.table {
-    --bs-table-bg: black;
-    --bs-table-color: white;
-    --bs-table-hover-color: #0d6efd;
-    text-align: center;
-    vertical-align: middle;
+#content {
+    width: 85%;
+    height: 100vh;
 }
