@@ -59,8 +59,8 @@ const createWindow = () => {
         height: winState.height,
         x: winState.x,
         y: winState.y,
-        minWidth: 600,
-        minHeight: 450,
+        minWidth: 800,
+        minHeight: 650,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,

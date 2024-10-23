@@ -2,15 +2,57 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Hello World!</title>
+        <title>(joystick -> arduino) connecter</title>
+        <link
+            rel="stylesheet"
+            href="../node_modules/admin-lte/dist/css/adminlte.min.css"
+        />
         <link rel="stylesheet" href="index.css" />
     </head>
 
-    <body id="index">
+    <body id="index" class="hold-transition sidebar-mini">
+        <!-- start side bar -->
+        <div class="sidebar">
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <img
+                        src="../icon/niava.jpg"
+                        class="img-circle elevation-2"
+                        alt="User Image"
+                    />
+                </div>
+            </div>
+
+            <!-- Sidebar Menu -->
+            <nav class="mt-2" style="padding: 0 20px">
+                <ul
+                    class="nav nav-pills nav-sidebar flex-column"
+                    data-widget="treeview"
+                    role="menu"
+                >
+                    <!-- Add icons to the links using the .nav-icon class
+                         with font-awesome or any other icon font library -->
+                    <li class="nav-item menu-open">
+                        <a
+                            href="#"
+                            class="nav-link active"
+                            id="joystick-page-nav"
+                        >
+                            Joystick Data
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <h6 class="appInternetStatus" id="status"></h6>
+        </div>
+        <!-- end sidebar -->
+
         <!-- start main -->
-        <main class="main"></main>
+        <main id="content"></main>
         <!-- end main -->
 
-        <script src="./rederer.cjs"></script>
+        <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="../node_modules/admin-lte/dist/js/adminlte.min.js"></script>
+        <script src="rederer.cjs"></script>
     </body>
 </html>

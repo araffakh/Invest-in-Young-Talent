@@ -12,6 +12,8 @@ body {
     -webkit-app-region: drag;
     display: flex;
     align-items: flex-start;
+    background-color: black;
+    color: white;
 }
 
 .sidebar {
@@ -33,16 +35,45 @@ body {
     width: fit-content;
 }
 
+.image {
+    padding: 10px;
+}
+
+.content {
+    width: 100%;
+}
+
+.joystick-data-page {
+    width: 100%;
+}
+
+.sidebar {
+    padding: 10px;
+    position: relative;
+}
+
+.image {
+    width: 100%;
+    text-align: center;
+}
+
+.image img {
+    width: 50%;
+}
+
+.nav-link {
+    text-align: center;
+}
+
 .appInternetStatus {
     position: absolute;
     bottom: 10px;
-    width: fit-content;
-    margin: 0 auto;
 }
 
-.main {
-    width: 85%;
-    height: 100vh;
-    background-color: black;
-    color: white;
+.table {
+    --bs-table-bg: black;
+    --bs-table-color: white;
+    --bs-table-hover-color: #0d6efd;
+    text-align: center;
+    vertical-align: middle;
 }

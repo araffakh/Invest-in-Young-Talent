@@ -18,11 +18,11 @@ const connectWebSocket = () => {
     };
 };
 
-const sendDataToFrontend = () => {
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(dataToArduino);
-    }
-};
+// const sendDataToFrontend = () => {
+//     if (socket.readyState === WebSocket.OPEN) {
+//         socket.send(dataToArduino);
+//     }
+// };
 
 let joystick = null;
 
@@ -50,7 +50,7 @@ let joyStickData = "";
 let lastLeft;
 let lastRight;
 let lastButtons;
-let dataToArduino;
+let dataToArduino = "";
 
 function control(data) {
     joyStickData = data.split('"').slice(6)[0].slice(2, -2);
@@ -73,6 +73,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "0";
             }
+            webSocketSend("forward");
         } else if (left == "127-255") {
             //backward
             if (
@@ -86,6 +87,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "25";
             }
+            webSocketSend("backward");
         } else if (left == "255-127") {
             //right
             if (
@@ -99,6 +101,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "50";
             }
+            webSocketSend("rightward");
         } else if (left == "0-127") {
             //left
             if (
@@ -112,6 +115,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "75";
             }
+            webSocketSend("leftward");
         }
         lastLeft = left;
     }
@@ -131,6 +135,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "100";
             }
+            webSocketSend("top");
         } else if (right == 79) {
             //bottom
             if (dataToArduino.length == 2 && dataToArduino[0] == "B") {
@@ -138,6 +143,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "125";
             }
+            webSocketSend("bottom");
         } else if (right == 47) {
             //right
             if (dataToArduino.length == 2 && dataToArduino[0] == "B") {
@@ -145,6 +151,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "150";
             }
+            webSocketSend("look right");
         } else if (right == 143) {
             //left
             if (dataToArduino.length == 2 && dataToArduino[0] == "B") {
@@ -152,6 +159,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "180";
             }
+            webSocketSend("look left");
         }
 
         lastRight = right;
@@ -162,25 +170,29 @@ function control(data) {
         if (buttons == 1) {
             //L1
             dataToArduino = "L";
+            webSocketSend("L1");
         } else if (buttons == 2) {
             //R1
             dataToArduino = "S";
+            webSocketSend("R1");
         } else if (buttons == 4) {
             //L2
             dataToArduino = "B";
+            webSocketSend("L2");
         } else if (buttons == 8) {
             //R2
             console.log(`message: ${dataToArduino}`);
+            webSocketSend("R2");
         } else if (buttons == 16) {
             //select
-            // socket.send(dataToArduino);
-            sendDataToFrontend();
+            webSocketSend();
             port.write(`${dataToArduino}\n`, (err) => {
                 console.log(`Message sent to Arduino: ${dataToArduino}`);
             });
         } else if (buttons == 32) {
             //start
             dataToArduino = "";
+            webSocketSend();
         } else if (buttons == 64) {
             //left drag button
             if (dataToArduino[0] == "L" && dataToArduino.length == 2) {
@@ -196,6 +208,7 @@ function control(data) {
             } else if (dataToArduino[0] == "S") {
                 dataToArduino += "-";
             }
+            webSocketSend("left drag button");
         } else if (buttons == 128) {
             //right drag button
             if (dataToArduino[0] == "L" && dataToArduino.length == 2) {
@@ -209,7 +222,18 @@ function control(data) {
                     dataToArduino += "0";
                 }
             }
+            webSocketSend("right drag button");
         }
         lastButtons = buttons;
+    }
+}
+
+function webSocketSend(dataFromController) {
+    if (socket.readyState === WebSocket.OPEN) {
+        let data = {
+            pressed: dataFromController ? dataFromController : "",
+            result: dataToArduino,
+        };
+        socket.send(JSON.stringify(data));
     }
 }
