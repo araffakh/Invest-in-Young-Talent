@@ -1,0 +1,20 @@
+body {
+    width: 100%;
+}
+
+.joystick-data-page {
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+    --bs-table-bg: black;
+    --bs-table-color: white;
+    --bs-table-hover-color: #0d6efd;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.th-buttons {
+    width: 20%;
+}

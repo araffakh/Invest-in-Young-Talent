@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="ArduinoStatusStyle.css" />
+    </head>
+    <body>
+        <h1>Arduino Status</h1>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th class="th-buttons">Led</th>
+                    <th>Status</th>
+                    <th>Bright</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-widget="expandable-table" aria-expanded="false">
+                    <td>1</td>
+                    <td id="1"></td>
+                    <td></td>
+                </tr>
+                <tr data-widget="expandable-table" aria-expanded="true">
+                    <td>2</td>
+                    <td id="2"></td>
+                    <td></td>
+                </tr>
+                <tr data-widget="expandable-table" aria-expanded="true">
+                    <td>3</td>
+                    <td id="3"></td>
+                    <td></td>
+                </tr>
+                <tr data-widget="expandable-table" aria-expanded="true">
+                    <td>4</td>
+                    <td id="4"></td>
+                    <td></td>
+                </tr>
+                <tr data-widget="expandable-table" aria-expanded="true">
+                    <td>5</td>
+                    <td id="5"></td>
+                    <td id="bright"></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>Last Recieved</td>
+                    <td id="recieved"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </body>
+</html>
