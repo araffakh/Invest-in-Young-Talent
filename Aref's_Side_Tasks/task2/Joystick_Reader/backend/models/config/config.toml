@@ -1,0 +1,55 @@
+[Controller]
+vendor = "xtreme3dpro"  # xbox360 ,xtreme3dpro , G20  The type of game controller being used
+mapButton = true #true , false
+buttonMapping = "xtreme3dpro_mapping" #write the name of mapping section
+
+[xbox360_mapping]
+A = 1  # Button A mapping value
+B = 2  # Button B mapping value
+Y = 3  # Button Y mapping value
+X = 4  # Button X mapping value
+Up = 5  # Button Up mapping value
+Down = 6  # Button Down mapping value
+Left = 7  # Button Left mapping value
+Right = 8  # Button Right mapping value
+L1 = 9  # Button L1 mapping value
+L2 = 10  # Button L2 mapping value
+R1 = 11  # Button R1 mapping value
+R2 = 12  # Button R2 mapping value
+Start = 13  # Button Start mapping value
+Select = 14  # Button Select mapping value
+
+[G920_mapping]
+A = 1  # Button A mapping value
+B = 2  # Button B mapping value
+Y = 3  # Button Y mapping value
+X = 4  # Button X mapping value
+LSB = 9  # Button L1 mapping value
+RSB = 10  # Button R1 mapping value
+GearUp = 11  # Button GearUp mapping value
+GearDown = 12  # Button GearDown mapping value
+Menu = 13  # Button Menu mapping value (Start)
+View = 14  # Button View mapping value (Select)
+DpadUPRight = 15  # Button Dpad Up-Right mapping value
+DpadDownRight = 16  # Button Dpad Down-Right mapping value
+DpadDownLeft = 17  # Button Dpad Down-Left mapping value
+DpadLeft = 19  # Button Dpad Left mapping value
+Steering = 20  # Steering mapping value
+ShifterGear = 21  # Shifter Gear mapping value
+Xbox = 22  # Button Xbox mapping value
+
+[xtreme3dpro_mapping]
+b1 = 1  # Button 1 mapping value
+b2 = 2  # Button 2 mapping value
+b3 = 3  # Button 3 mapping value
+b4 = 4  # Button 3 mapping value
+b5 = 5  # Button 3 mapping value
+b6 = 6  # Button 3 mapping value
+b7 = 7  # Button 3 mapping value
+b8 = 8  # Button 3 mapping value
+b9 = 9  # Button 9 mapping value
+b10 = 10  # Button 10 mapping value
+b11 = 11  # Button 11 mapping value
+b12 = 12  # Button 12 mapping value
+view = 13  # Button view mapping value
+

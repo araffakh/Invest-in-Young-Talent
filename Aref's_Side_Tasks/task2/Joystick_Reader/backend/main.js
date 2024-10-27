@@ -1,14 +1,14 @@
 const { app, BrowserWindow, Menu, Tray } = require("electron");
 const WebSocket = require("ws");
-require("./models/joystickReader.js");
 const { encrypt, decrypt } = require("./functions/crypt.js");
-const { ipcMain } = require("electron");
-
-server = new WebSocket.Server({ port: 8080 });
-
+const GameController = require("./models/controllers/NiavaGameController");
+const ws = new WebSocket("http://localhost:4000");
+const server = new WebSocket.Server({ port: 8080 });
 const path = require("node:path");
 const windowStateKeeper = require("electron-window-state");
 const { MainMenu } = require("./MainMenu.js");
+const Datastore = require("nedb");
+const db = new Datastore({ filename: "data.db", autoload: true });
 
 //right click manu
 const ContextMenu = Menu.buildFromTemplate([
@@ -104,34 +104,120 @@ app.whenReady().then(() => {
     });
 });
 
-let joystickData = null;
+//joystick read
 let fromArduinoData = null;
+let controllerData = null;
+const FREQUENCY = 100;
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function initController() {
+    let controller = await GameController.init();
+
+    console.log("Controller connected");
+
+    controller.on("data:raw", function (data) {
+        if (data) {
+            controllerData = data;
+        }
+    });
+}
+
+async function runApp() {
+    await initController();
+    console.log("Controller initialized");
+    while (true) {
+        if (controllerData) {
+            ws.send(encrypt(controllerData));
+            let toFrontend = {
+                from: "joystick",
+                data: controllerData,
+            };
+            sendToFrontend(toFrontend);
+
+            insertLog({
+                time: Date.now(),
+                action: `sent ${controllerData} to server`,
+                error: false,
+            });
+        }
+        await sleep(1000 / FREQUENCY);
+    }
+}
+runApp();
+
+// logs
+async function insertLog(data) {
+    await db.insert(data, (err, newDoc) => {
+        if (err) {
+            console.error(err);
+            e.sender.send("toDoCH2", "Error inserting");
+            return;
+        }
+
+        getLogs();
+    });
+}
+
+async function getLogs() {
+    await db.find({}, (err, docs) => {
+        if (err) {
+            console.error(err);
+            return null;
+        }
+
+        let toFrontend = {
+            from: "logs",
+            data: docs,
+        };
+        sendToFrontend(toFrontend);
+    });
+}
 
 // Web Socket
-server.on("connection", (socket) => {
-    console.log("Client connected");
+//server
+ws.on("open", function open() {
+    console.log("webSocket opened");
+    ws.send(encrypt("joystick"));
+});
 
-    socket.on("message", (message) => {
-        const dencryptedMessage = decrypt(message);
-        fromArduinoData = JSON.parse(dencryptedMessage);
+ws.on("message", (event) => {
+    const dencryptedMessage = decrypt(message);
+    fromArduinoData = JSON.parse(dencryptedMessage);
+    let toFrontend = {
+        from: "arduino",
+        data: fromArduinoData,
+    };
+    sendToFrontend(toFrontend);
+
+    insertLog({
+        time: Date.now(),
+        action: `recieved ${fromArduinoData} from server`,
+        error: false,
     });
+});
 
-    // joystick IPC
-    ipcMain.on("joystickCH", (event, data) => {
-        joystickData = data;
-        let sendToWebSocket = data.result;
-        socket.sender.send(encrypt(sendToWebSocket));
+//local
+let frontendID = null;
+server.on("connection", (socket, req) => {
+    frontendID = req.socket.remoteAddress;
+    socket.on("message", () => {
+        getLogs();
     });
 });
 
-// IPC
-ipcMain.on("request-joystick-data", (event, data) => {
-    event.sender.send("get-joystick-data", joystickData);
-});
-
-ipcMain.on("request-arduino-data", (event, data) => {
-    event.sender.send("get-arduino-data", fromArduinoData);
-});
+function sendToFrontend(data) {
+    server.clients.forEach((client) => {
+        if (
+            client.readyState === WebSocket.OPEN &&
+            client.remoteAddress == frontendID
+        ) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
 
 // closing
 app.on("window-all-closed", () => {

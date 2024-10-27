@@ -1,6 +1,7 @@
 //router
 
 const ArduinoStatusPage = document.getElementById("arduino-status-page-nav");
+const logsPage = document.getElementById("logs-page-nav");
 
 async function loadPage(page) {
     await fetch(page)
@@ -17,4 +18,8 @@ loadPage("home.html");
 
 ArduinoStatusPage.addEventListener("click", () => {
     loadPage("ArduinoStatusPage.html");
+});
+
+logsPage.addEventListener("click", () => {
+    loadPage("logs.html");
 });

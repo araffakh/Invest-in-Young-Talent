@@ -2,6 +2,7 @@
 
 const joystickPage = document.getElementById("joystick-page-nav");
 const arduinoPage = document.getElementById("arduino-page-nav");
+const logsPage = document.getElementById("logs-page-nav");
 
 async function loadPage(page) {
     await fetch(page)
@@ -22,4 +23,8 @@ joystickPage.addEventListener("click", () => {
 
 arduinoPage.addEventListener("click", () => {
     loadPage("ArduinoStatus.html");
+});
+
+logsPage.addEventListener("click", () => {
+    loadPage("logs.html");
 });

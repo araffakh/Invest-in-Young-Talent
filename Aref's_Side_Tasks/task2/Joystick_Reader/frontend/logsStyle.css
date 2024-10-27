@@ -1,0 +1,9 @@
+#logs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.log {
+    border-radius: 10px;
+}
