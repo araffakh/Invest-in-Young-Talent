@@ -1,6 +1,6 @@
-#web socket server
+# web socket server
 
-##description:
+## description:
 ### the folders: [webSocket_server , WBS_test] contains a small test for a 2 programs contact each other using the web socket server.
 
 ## installation:
