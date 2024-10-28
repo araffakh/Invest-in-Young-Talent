@@ -1,7 +1,9 @@
 // arduino.js
 const WebSocket = require("ws");
+const SERVER = "invest-in-young-talent.onrender.com";
 
-const ws = new WebSocket("ws://localhost:4000"); // Replace with Render's URL when deployed
+
+const ws = new WebSocket("wss://" + SERVER); // Replace with Render's URL when deployed
 
 ws.on("open", () => {
     ws.send(JSON.stringify({ type: "arduino" }));

@@ -1,7 +1,7 @@
 // joystick.js
 const WebSocket = require("ws");
 
-const SERVER = "https://invest-in-young-talent.onrender.com";
+const SERVER = "invest-in-young-talent.onrender.com";
 
 const ws = new WebSocket("wss://" + SERVER); // Replace with Render's URL when deployed
 
