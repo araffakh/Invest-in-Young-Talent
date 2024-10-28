@@ -1,4 +1,4 @@
-`# Invest in Young Talent - WebSocket Server with Joystick and Arduino Clients
+# Invest in Young Talent - WebSocket Server with Joystick and Arduino Clients
 
 This project includes a WebSocket server that facilitates communication between two applications: a joystick client and an Arduino client. The WebSocket server routes messages between these clients, enabling seamless data exchange.
 
