@@ -2,14 +2,13 @@
 const { createServer } = require("http");
 const WebSocket = require("ws");
 
-
-const PORT = process.env.PORT || 3000;
-console.log('port ' + process.env.PORT);
-const server = http.createServer(app);
+const server = createServer();
 const WebSocketServer = new WebSocket.Server({ server: server });
 
 let joyStickClient = null;
 let arduinoClient = null;
+const PORT = process.env.PORT || 3000;
+console.log('port ' + process.env.PORT);
 
 WebSocketServer.on("connection", (ws) => {
     ws.on("message", (message) => {
@@ -38,4 +37,6 @@ WebSocketServer.on("connection", (ws) => {
     });
 });
 
-server.listen(4000, () => console.log("WebSocket Server running on port 4000"));
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+} );

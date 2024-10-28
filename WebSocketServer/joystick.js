@@ -1,7 +1,9 @@
 // joystick.js
 const WebSocket = require("ws");
 
-const ws = new WebSocket("wss://3.75.158.163:4000"); // Replace with Render's URL when deployed
+const SERVER = "https://invest-in-young-talent.onrender.com";
+
+const ws = new WebSocket("wss://" + SERVER); // Replace with Render's URL when deployed
 
 ws.on("open", () => {
     ws.send(JSON.stringify({ type: "joystick" }));
