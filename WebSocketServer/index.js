@@ -2,7 +2,10 @@
 const { createServer } = require("http");
 const WebSocket = require("ws");
 
-const server = createServer();
+
+const PORT = process.env.PORT || 3000;
+console.log('port ' + process.env.PORT);
+const server = http.createServer(app);
 const WebSocketServer = new WebSocket.Server({ server: server });
 
 let joyStickClient = null;
