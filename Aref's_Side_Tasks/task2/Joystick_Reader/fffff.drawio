@@ -1,0 +1,13 @@
+<mxfile host="65bd71144e">
+    <diagram id="ruG6CbfNFqx5J5z7nXle" name="Page-1">
+        <mxGraphModel dx="986" dy="456" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="L1 -&amp;gt; L11 || L10&lt;br&gt;L2 -&amp;gt; L21 || L20&lt;br&gt;R1 -&amp;gt; L31 || L30&lt;br&gt;R2 -&amp;gt; L41 || L40&lt;br&gt;&lt;br&gt;MOVE FORWARD -&amp;gt; B50&lt;br&gt;MOVE LEFT -&amp;gt; B590&lt;br&gt;MOVE BACKWARD -&amp;gt; B5180&lt;br&gt;MOVE RIGHT -&amp;gt; B5255&lt;br&gt;&lt;br&gt;LOOK TOP -&amp;gt; S1-0-&lt;br&gt;LOOK LEFT -&amp;gt; S1-60-&lt;br&gt;LOOK BOTTOM -&amp;gt; S1-120-&lt;br&gt;LOOK RIGHT -&amp;gt; S1-180-&lt;br&gt;&lt;br&gt;START -&amp;gt; &quot;&amp;nbsp; &amp;nbsp; &amp;nbsp;&quot;&lt;br&gt;SELECT -&amp;gt; SEND" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="90" y="40" width="380" height="380" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

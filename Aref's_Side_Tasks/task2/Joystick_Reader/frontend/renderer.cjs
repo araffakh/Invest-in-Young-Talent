@@ -1,5 +1,6 @@
 //router
 
+const homePage = document.getElementById("home-page-nav");
 const joystickPage = document.getElementById("joystick-page-nav");
 const arduinoPage = document.getElementById("arduino-page-nav");
 const logsPage = document.getElementById("logs-page-nav");
@@ -16,6 +17,10 @@ async function loadPage(page) {
 }
 
 loadPage("home.html");
+
+homePage.addEventListener("click", () => {
+    loadPage("home.html");
+});
 
 joystickPage.addEventListener("click", () => {
     loadPage("joystickData.html");

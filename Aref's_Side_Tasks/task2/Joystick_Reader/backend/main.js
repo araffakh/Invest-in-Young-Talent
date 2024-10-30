@@ -1,13 +1,21 @@
-const { app, BrowserWindow, Menu, Tray } = require("electron");
-const WebSocket = require("ws");
-const { encrypt, decrypt } = require("./functions/crypt.js");
-const GameController = require("./models/controllers/NiavaGameController");
-const ws = new WebSocket("http://localhost:4000");
-const server = new WebSocket.Server({ port: 8080 });
-const path = require("node:path");
+const { app, BrowserWindow, Menu } = require("electron");
 const windowStateKeeper = require("electron-window-state");
-const { MainMenu } = require("./MainMenu.js");
+const WebSocket = require("ws");
+const path = require("node:path");
 const Datastore = require("nedb");
+const EventEmitter = require("events").EventEmitter;
+const GameController = require("./models/controllers/NiavaGameController");
+const { encrypt, decrypt } = require("./functions/crypt.js");
+const { MainMenu } = require("./MainMenu.js");
+const {
+    checkControllerData,
+    calcResult,
+} = require("./functions/checkControllerData.js");
+
+const myEmitter = new EventEmitter();
+const SERVER = "invest-in-young-talent.onrender.com";
+const ws = new WebSocket("wss://" + SERVER);
+const server = new WebSocket.Server({ port: 8080 });
 const db = new Datastore({ filename: "data.db", autoload: true });
 
 //right click manu
@@ -20,32 +28,13 @@ const ContextMenu = Menu.buildFromTemplate([
     },
 ]);
 
-//programs bar app icon
-let tray;
-let trayMenu = Menu.buildFromTemplate([
-    {
-        label: "item 1",
-    },
-    {
-        role: "quit",
-    },
-]);
-
-function createTray() {
-    tray = new Tray("icon/niava.jpg");
-    tray.setToolTip("task1");
-    tray.setContextMenu(trayMenu);
-}
-
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
     app.quit();
 }
 
 //create app windows
-let mainWindow;
 const createWindow = () => {
-    createTray();
     //main top menu
     new MainMenu();
 
@@ -56,7 +45,7 @@ const createWindow = () => {
     });
 
     // Create the browser window.
-    mainWindow = new BrowserWindow({
+    const mainWindow = new BrowserWindow({
         width: winState.width,
         height: winState.height,
         x: winState.x,
@@ -69,7 +58,6 @@ const createWindow = () => {
             enableRemoteModule: false,
             nodeIntegration: false,
         },
-        show: false,
     });
 
     //popup the right click menu
@@ -82,16 +70,8 @@ const createWindow = () => {
 
     winState.manage(mainWindow);
 
-    mainWindow.once("ready-to-show", () => {
-        mainWindow.show();
-    });
-
-    mainWindow.on("closed", () => {
-        mainWindow = null;
-    });
-
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 };
 
 app.whenReady().then(() => {
@@ -105,22 +85,124 @@ app.whenReady().then(() => {
 });
 
 //joystick read
-let fromArduinoData = null;
-let controllerData = null;
-const FREQUENCY = 100;
+let controllerResultData = null;
+let lastArduinoStatus = [
+    {
+        name: 1,
+        status: 0,
+    },
+    {
+        name: 2,
+        status: 0,
+    },
+    {
+        name: 3,
+        status: 0,
+    },
+    {
+        name: 4,
+        status: 0,
+    },
+    {
+        name: 5,
+        status: 0,
+        bright: 0,
+    },
+];
 
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+myEmitter.on("frontend", (data) => {
+    if (frontendID && frontendID.readyState === WebSocket.OPEN) {
+        frontendID.send(JSON.stringify(data));
+    } else {
+        setTimeout(() => {
+            if (frontendID && frontendID.readyState === WebSocket.OPEN) {
+                frontendID.send(JSON.stringify(data));
+            }
+        }, 2000);
+    }
+});
+
+myEmitter.on("server", (data) => {
+    ws.send(encrypt(JSON.stringify({ payload: data })));
+
+    insertLog({
+        time: Date.now(),
+        action: `sent ${data} to server`,
+        error: false,
+    });
+});
+
+myEmitter.on("joystick", (data) => {
+    let controlerData = "";
+
+    if (typeof data == "string") {
+        controlerData = data;
+    } else {
+        if (
+            !(
+                data["axis:JOYR:X"] == 0 &&
+                data["axis:JOYR:Y"] == 0 &&
+                data["axis:JOYL:X"] == 127 &&
+                data["axis:JOYL:Y"] == 127
+            ) &&
+            !(
+                data["axis:JOYR:X"] == 15 &&
+                data["axis:JOYR:Y"] == 15 &&
+                data["axis:JOYL:X"] == 0 &&
+                data["axis:JOYL:Y"] == 0
+            )
+        ) {
+            controlerData = checkControllerData(data);
+        }
+    }
+
+    let result = calcResult(controlerData, lastArduinoStatus);
+    let send = result.send;
+    controllerResultData = result.result;
+
+    let toFrontend = {
+        from: "joystick",
+        data: controlerData,
+        result: controllerResultData,
+    };
+
+    myEmitter.emit("frontend", toFrontend);
+
+    if (send) {
+        myEmitter.emit("server", controllerResultData);
+    }
+});
 
 async function initController() {
     let controller = await GameController.init();
 
-    console.log("Controller connected");
+    controller.on("joystickConnected", () => {
+        let toFrontend = {
+            from: "joystickConnect",
+            data: controller._tomain,
+            connected: true,
+        };
+        if (frontendID) {
+            myEmitter.emit("frontend", toFrontend);
+        } else {
+            setTimeout(() => {
+                myEmitter.emit("frontend", toFrontend);
+            }, 1000);
+        }
+    });
 
-    controller.on("data:raw", function (data) {
+    controller.on("disconnect", () => {
+        let toFrontend = {
+            from: "joystickConnect",
+            data: null,
+            connected: false,
+        };
+        myEmitter.emit("frontend", toFrontend);
+    });
+
+    controller.on("control", function (data) {
         if (data) {
-            controllerData = data;
+            myEmitter.emit("joystick", data);
         }
     });
 }
@@ -128,32 +210,14 @@ async function initController() {
 async function runApp() {
     await initController();
     console.log("Controller initialized");
-    while (true) {
-        if (controllerData) {
-            ws.send(encrypt(controllerData));
-            let toFrontend = {
-                from: "joystick",
-                data: controllerData,
-            };
-            sendToFrontend(toFrontend);
-
-            insertLog({
-                time: Date.now(),
-                action: `sent ${controllerData} to server`,
-                error: false,
-            });
-        }
-        await sleep(1000 / FREQUENCY);
-    }
 }
 runApp();
 
 // logs
-async function insertLog(data) {
-    await db.insert(data, (err, newDoc) => {
+function insertLog(data) {
+    db.insert(data, (err, newDoc) => {
         if (err) {
             console.error(err);
-            e.sender.send("toDoCH2", "Error inserting");
             return;
         }
 
@@ -161,8 +225,8 @@ async function insertLog(data) {
     });
 }
 
-async function getLogs() {
-    await db.find({}, (err, docs) => {
+function getLogs() {
+    db.find({}, (err, docs) => {
         if (err) {
             console.error(err);
             return null;
@@ -172,25 +236,42 @@ async function getLogs() {
             from: "logs",
             data: docs,
         };
-        sendToFrontend(toFrontend);
+
+        myEmitter.emit("frontend", toFrontend);
     });
 }
 
 // Web Socket
 //server
 ws.on("open", function open() {
-    console.log("webSocket opened");
-    ws.send(encrypt("joystick"));
+    ws.send(JSON.stringify({ type: "joystick" }));
+    console.log("Connected to WebSocket server as Joystick");
+
+    let toFrontend = {
+        from: "serverStatus",
+        data: true,
+    };
+
+    myEmitter.emit("frontend", toFrontend);
+
+    insertLog({
+        time: Date.now(),
+        action: `connected to server server`,
+        error: false,
+    });
 });
 
-ws.on("message", (event) => {
-    const dencryptedMessage = decrypt(message);
-    fromArduinoData = JSON.parse(dencryptedMessage);
+ws.on("message", (message) => {
+    const fromArduinoData = JSON.parse(decrypt(message.toString()));
+
+    lastArduinoStatus = fromArduinoData;
+
     let toFrontend = {
         from: "arduino",
         data: fromArduinoData,
     };
-    sendToFrontend(toFrontend);
+
+    myEmitter.emit("frontend", toFrontend);
 
     insertLog({
         time: Date.now(),
@@ -201,23 +282,18 @@ ws.on("message", (event) => {
 
 //local
 let frontendID = null;
-server.on("connection", (socket, req) => {
-    frontendID = req.socket.remoteAddress;
-    socket.on("message", () => {
-        getLogs();
-    });
-});
 
-function sendToFrontend(data) {
-    server.clients.forEach((client) => {
-        if (
-            client.readyState === WebSocket.OPEN &&
-            client.remoteAddress == frontendID
-        ) {
-            client.send(JSON.stringify(data));
+server.on("connection", (socket) => {
+    console.log("frontend connected");
+
+    socket.on("message", (message) => {
+        if (frontendID == null) {
+            frontendID = socket;
+        } else {
+            getLogs();
         }
     });
-}
+});
 
 // closing
 app.on("window-all-closed", () => {
