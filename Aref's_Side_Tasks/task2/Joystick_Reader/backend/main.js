@@ -109,6 +109,7 @@ let lastArduinoStatus = [
         bright: 0,
     },
 ];
+let conrolerStatus = null;
 
 myEmitter.on("frontend", (data) => {
     if (frontendID && frontendID.readyState === WebSocket.OPEN) {
@@ -182,6 +183,9 @@ async function initController() {
             data: controller._tomain,
             connected: true,
         };
+
+        conrolerStatus = toFrontend;
+
         if (frontendID) {
             myEmitter.emit("frontend", toFrontend);
         } else {
@@ -197,6 +201,9 @@ async function initController() {
             data: null,
             connected: false,
         };
+
+        conrolerStatus = toFrontend;
+
         myEmitter.emit("frontend", toFrontend);
     });
 
@@ -289,7 +296,9 @@ server.on("connection", (socket) => {
     socket.on("message", (message) => {
         if (frontendID == null) {
             frontendID = socket;
-        } else {
+        } else if (message.toString() == "joystick Status") {
+            myEmitter.emit("frontend", conrolerStatus);
+        } else if (message.toString() == "logs") {
             getLogs();
         }
     });

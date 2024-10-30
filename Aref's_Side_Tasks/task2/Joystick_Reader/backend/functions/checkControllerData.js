@@ -22,7 +22,8 @@ function checkControllerData(data) {
 
 function calcResult(data, arduinoStatus) {
     let result = "";
-    let send = true;
+    let send = false;
+
     if (data == "L1") {
         if (arduinoStatus[0].status == 0) {
             result = "L11";
@@ -63,8 +64,10 @@ function calcResult(data, arduinoStatus) {
         result = "S1-120-";
     } else if (data == "look right") {
         result = "S1-180-";
-    } else {
-        send = false;
+    } else if (data == "start") {
+        result = "";
+    } else if (data == "select") {
+        send = true;
     }
     return { result: result, send: send };
 }

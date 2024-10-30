@@ -1,0 +1,23 @@
+.controlerStatus {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    border: 1px solid white;
+    border-radius: 10px;
+    background-color: rgb(58, 58, 58);
+    width: 80%;
+    margin: 10px auto;
+    padding: 10px;
+}
+
+.controlerStatus div {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 10px;
+}
+
+#joystickStatus {
+    border-radius: 5px;
+    padding: 5px;
+}

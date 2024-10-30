@@ -44,7 +44,12 @@ body {
 }
 
 .image img {
-    width: 50%;
+    width: 80%;
+    border-radius: 20px;
+}
+
+.nav-item {
+    margin: 5px 0;
 }
 
 .nav-link {
@@ -54,6 +59,11 @@ body {
 .appInternetStatus {
     position: absolute;
     bottom: 10px;
+}
+
+.serverStatus {
+    position: absolute;
+    bottom: 50px;
 }
 
 #content {

@@ -59,13 +59,13 @@ window.addEventListener("DOMContentLoaded", () => {
         console.log("Disconnected from the WebSocket server from frontend");
     };
 
-    socket.onerror = (error) => {
-        console.error("WebSocket Error:", error);
-    };
+    const homePage = document.getElementById("home-page-nav");
 
-    socket.onclose = () => {
-        console.log("Disconnected from the WebSocket server from frontend");
-    };
+    homePage.addEventListener("click", () => {
+        socket.send("joystick Status");
+        showJoystick = showJoystick && !showJoystick;
+        showArduino = showArduino && !showArduino;
+    });
 
     function showJoystickStatus(data, status) {
         const joystickType = document.getElementById("joystickType");
