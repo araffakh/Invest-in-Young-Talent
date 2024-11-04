@@ -1,18 +1,20 @@
 // server.js
 const { createServer } = require("http");
 const WebSocket = require("ws");
+const crypt = require("./crypt");
 
 const server = createServer();
 const WebSocketServer = new WebSocket.Server({ server: server });
 
 let joyStickClient = null;
 let arduinoClient = null;
-const PORT = process.env.PORT || 3000;
-console.log('port ' + process.env.PORT);
+// const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+// console.log("port " + process.env.PORT);
 
 WebSocketServer.on("connection", (ws) => {
     ws.on("message", (message) => {
-        const data = JSON.parse(message);
+        const data = JSON.parse(crypt.decrypt(message.toString()));
 
         // Identify client type
         if (data.type === "joystick") {
@@ -24,9 +26,9 @@ WebSocketServer.on("connection", (ws) => {
         } else {
             // Forward messages
             if (ws === joyStickClient && arduinoClient) {
-                arduinoClient.send(data.payload);
+                arduinoClient.send(crypt.encrypt(data.payload));
             } else if (ws === arduinoClient && joyStickClient) {
-                joyStickClient.send(data.payload);
+                joyStickClient.send(crypt.encrypt(data.payload));
             }
         }
     });
@@ -39,4 +41,4 @@ WebSocketServer.on("connection", (ws) => {
 
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
-} );
+});
