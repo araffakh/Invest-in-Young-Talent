@@ -10,7 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "crypto-js": "^4.2.0",
+    "cobs": "^0.2.1",
     "ws": "^8.18.0"
   }
 }

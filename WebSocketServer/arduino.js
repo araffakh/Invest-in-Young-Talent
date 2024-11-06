@@ -1,20 +1,24 @@
 // arduino.js
 const WebSocket = require("ws");
 const SERVER = "invest-in-young-talent.onrender.com";
-const crypt = require("./crypt");
+const cobs = require("cobs");
 
-const ws = new WebSocket("ws://localhost:3000");
-
-// const ws = new WebSocket("wss://" + SERVER); // Replace with Render's URL when deployed
+const ws = new WebSocket("wss://" + SERVER); // Replace with Render's URL when deployed
 
 ws.on("open", () => {
-    ws.send(crypt.encrypt(JSON.stringify({ type: "arduino" })));
+    const data = Buffer.from("arduino");
+    const encoded = cobs.encode(data);
+
+    ws.send(JSON.stringify({ payload: encoded }));
+
     console.log("Connected to WebSocket server as Arduino");
 });
 
 // Example function to send Arduino data
 function sendArduinoData(data) {
-    ws.send(crypt.encrypt(JSON.stringify({ payload: data })));
+    data = Buffer.from(data);
+    const encoded = cobs.encode(data);
+    ws.send(JSON.stringify({ payload: encoded }));
 }
 
 // Example usage
@@ -23,6 +27,7 @@ setInterval(() => {
 }, 1000);
 
 ws.on("message", (data) => {
-    const dencryptedData = crypt.decrypt(data.toString());
-    console.log("Received from server:", dencryptedData);
+    const decoded = cobs.decode(data);
+
+    console.log("Received from server:", decoded.toString());
 });
