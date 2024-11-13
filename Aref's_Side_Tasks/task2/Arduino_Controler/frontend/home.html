@@ -21,5 +21,21 @@
                 <h3 id="arduinobaud"></h3>
             </div>
         </div>
+
+        <div class="controlerStatus">
+            <div>
+                <h3>port:</h3>
+                <select
+                    id="arduinoport"
+                    onchange="window.electron.sendSelectedOption(this.value);"
+                >
+                    <option value="COM1">port 1: COM1</option>
+                    <option value="COM2">port 2: COM2</option>
+                    <option value="COM3">port 3: COM3</option>
+                    <option value="COM4">port 4: COM4</option>
+                    <option value="COM9">port 5: COM9</option>
+                </select>
+            </div>
+        </div>
     </body>
 </html>

@@ -2,6 +2,12 @@
 
 const socket = new WebSocket("ws://localhost:8080");
 
+const { contextBridge } = require("electron");
+
+contextBridge.exposeInMainWorld("electron", {
+    sendSelectedOption: (option) => socket.send(option),
+});
+
 window.addEventListener("DOMContentLoaded", () => {
     // document IDs
     const DIDs = ["1", "2", "3", "4", "5"];
@@ -40,30 +46,32 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 
     const homePage = document.getElementById("home-page-nav");
-
+    let showArduinoConnection = true;
     homePage.addEventListener("click", () => {
-        socket.send("arduino Status");
         showArduino = showArduino && !showArduino;
+        showArduinoConnection = !showArduinoConnection;
+        socket.send("arduino connection");
     });
 
     // frontend show functions
-
     function showArduinoStatus(data, status) {
-        const arduinoType = document.getElementById("arduinoType");
-        arduinoType.innerText = data.port;
+        if (showArduinoConnection) {
+            const arduinoType = document.getElementById("arduinoType");
+            arduinoType.innerText = data.port;
 
-        const arduinoStatus = document.getElementById("arduinoStatus");
-        arduinoStatus.innerText = status ? "connected" : "disconnected";
+            const arduinoStatus = document.getElementById("arduinoStatus");
+            arduinoStatus.innerText = status ? "connected" : "disconnected";
 
-        const arduinoBaud = document.getElementById("arduinobaud");
-        arduinoBaud.innerText = data.baud;
+            const arduinoBaud = document.getElementById("arduinobaud");
+            arduinoBaud.innerText = data.baud;
 
-        if (status == true) {
-            arduinoStatus.classList.remove("bg-danger");
-            arduinoStatus.classList.add("bg-success");
-        } else {
-            arduinoStatus.classList.remove("bg-success");
-            arduinoStatus.classList.add("bg-danger");
+            if (status == true) {
+                arduinoStatus.classList.remove("bg-danger");
+                arduinoStatus.classList.add("bg-success");
+            } else {
+                arduinoStatus.classList.remove("bg-success");
+                arduinoStatus.classList.add("bg-danger");
+            }
         }
     }
 
@@ -71,26 +79,35 @@ window.addEventListener("DOMContentLoaded", () => {
     let showArduino = false;
 
     arduinoPage.addEventListener("click", () => {
+        socket.send("arduino Status");
         showArduino = !showArduino;
+        showArduinoConnection = showArduinoConnection && !showArduinoConnection;
     });
 
     function showArduinoLedsStatus(data) {
-        if (showArduino) {
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].name !== 5) {
-                    document.getElementById(`${DIDs[i]}`).innerText =
-                        data[i].status == 1 ? "ON" : "OFF";
-                } else if (data[i].name == 5) {
-                    document.getElementById(`${DIDs[i]}`).innerTex =
-                        data[i].status == 1 ? "ON" : "OFF";
-                    document.getElementById(`bright`).innerTex = data[i].bright;
+        if (data != null) {
+            if (showArduino) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].name !== 5) {
+                        document.getElementById(`${DIDs[i]}`).innerText =
+                            data[i].status == 1 ? "ON" : "OFF";
+                    } else if (data[i].name == 5) {
+                        document.getElementById(`${DIDs[i]}`).innerTex =
+                            data[i].status == 1 ? "ON" : "OFF";
+                        document.getElementById(`bright`).innerTex =
+                            data[i].bright;
+                    }
                 }
             }
         }
     }
 
     function showRecieved(data) {
-        document.getElementById(`recieved`).innerText = data;
+        if (data != null) {
+            if (showArduino) {
+                document.getElementById(`recieved`).innerText = data;
+            }
+        }
     }
 
     const logsPage = document.getElementById("logs-page-nav");

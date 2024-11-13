@@ -4,9 +4,9 @@ const WebSocket = require("ws");
 const path = require("node:path");
 const Datastore = require("nedb");
 const SerialManager = require("./models/serialManagerOnePort");
-const { encrypt, decrypt } = require("./functions/crypt.js");
 const { MainMenu } = require("./MainMenu.js");
 const { translate } = require("./functions/translateDataFromArduino.js");
+const cobs = require("cobs");
 const EventEmitter = require("events").EventEmitter;
 
 const myEmitter = new EventEmitter();
@@ -97,7 +97,9 @@ myEmitter.on("frontend", (data) => {
 });
 
 myEmitter.on("server", (data) => {
-    ws.send(encrypt(JSON.stringify({ payload: data })));
+    data = Buffer.from(data);
+    const encoded = cobs.encode(data);
+    ws.send(JSON.stringify({ payload: encoded }));
 
     insertLog({
         time: Date.now(),
@@ -105,6 +107,9 @@ myEmitter.on("server", (data) => {
         error: false,
     });
 });
+
+// Initialize the port
+let serialManager;
 
 myEmitter.on("arduino", async (data) => {
     try {
@@ -116,33 +121,40 @@ myEmitter.on("arduino", async (data) => {
     }
 });
 
-// Initialize the port
-const serialManager = SerialManager.initializePort();
-
 // Open the connection
 async function connectToArduino() {
-    await serialManager.openConnection();
-    if (serialManager.isOpen) {
-        let toFrontend = {
-            from: arduinoConnect,
-            data: {
-                port: serialManager._tomain.serialport,
-                baud: serialManager._tomain.serialbaud,
-            },
-            connected: true,
-        };
+    const connectionInterval = setInterval(async () => {
+        try {
+            await serialManager.openConnection();
 
-        myEmitter.emit("frontend", toFrontend);
-    }
+            if (serialManager.isOpen) {
+                let toFrontend = {
+                    from: "arduinoConnect",
+                    data: {
+                        port: serialManager._tomain.serialport,
+                        baud: serialManager._tomain.serialbaud,
+                    },
+                    connected: true,
+                };
+
+                setTimeout(() => {
+                    myEmitter.emit("frontend", toFrontend);
+                }, 1000);
+                recieveFromArduino();
+
+                clearInterval(connectionInterval);
+            }
+        } catch (err) {
+            console.log("error connecting to Arduino: ", err, "\n");
+            console.log("retrying connection ...\n\n");
+        }
+    }, 3000);
 }
-connectToArduino();
 
 // Receive data
 async function recieveFromArduino() {
     console.log("Listening for incoming data on port...", serialManager.isOpen);
     while (serialManager.isOpen) {
-        console.log(serialManager.isOpen);
-
         try {
             const receivedData = await serialManager.receive();
 
@@ -176,7 +188,6 @@ async function recieveFromArduino() {
         }
     }
 }
-recieveFromArduino();
 
 // logs
 function insertLog(data) {
@@ -209,7 +220,10 @@ function getLogs() {
 // Web Socket
 //server
 ws.on("open", function open() {
-    ws.send(JSON.stringify({ type: "arduino" }));
+    const data = Buffer.from("arduino");
+    const encoded = cobs.encode(data);
+
+    ws.send(JSON.stringify({ payload: encoded }));
     console.log("Connected to WebSocket server as Arduino");
 
     let toFrontend = {
@@ -227,7 +241,8 @@ ws.on("open", function open() {
 });
 
 ws.on("message", (message) => {
-    toArduinoData = decrypt(message.toString());
+    const data = cobs.decode(message);
+    toArduinoData = data.toString();
 
     insertLog({
         time: Date.now(),
@@ -247,9 +262,9 @@ ws.on("message", (message) => {
 //local
 let frontendID = null;
 server.on("connection", (socket) => {
-    socket.on("message", (message) => {
+    socket.on("message", async (message) => {
         const stringedmessage = message.toString();
-        console.log("hhhhhhhhhhhhhhhhhhh " + stringedmessage);
+
         if (stringedmessage == "frontend" && frontendID == null) {
             console.log("frontend connected");
             frontendID = socket;
@@ -261,6 +276,35 @@ server.on("connection", (socket) => {
                 data: fromArduinoData,
             };
             myEmitter.emit("frontend", toFrontend);
+
+            let toFrontend2 = {
+                from: "recieved",
+                data: toArduinoData,
+            };
+            myEmitter.emit("frontend", toFrontend2);
+        } else if (stringedmessage == "arduino connection") {
+            if (serialManager.isOpen) {
+                let toFrontend = {
+                    from: "arduinoConnect",
+                    data: {
+                        port: serialManager._tomain.serialport,
+                        baud: serialManager._tomain.serialbaud,
+                    },
+                    connected: true,
+                };
+
+                myEmitter.emit("frontend", toFrontend);
+            } else {
+                let toFrontend = {
+                    from: "arduinoConnect",
+                    connected: false,
+                };
+
+                myEmitter.emit("frontend", toFrontend);
+            }
+        } else {
+            serialManager = await SerialManager.initializePort(stringedmessage);
+            connectToArduino();
         }
     });
 });

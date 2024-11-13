@@ -5,12 +5,12 @@ const path = require("node:path");
 const Datastore = require("nedb");
 const EventEmitter = require("events").EventEmitter;
 const GameController = require("./models/controllers/NiavaGameController");
-const { encrypt, decrypt } = require("./functions/crypt.js");
 const { MainMenu } = require("./MainMenu.js");
 const {
     checkControllerData,
     calcResult,
 } = require("./functions/checkControllerData.js");
+const cobs = require("cobs");
 
 const myEmitter = new EventEmitter();
 const SERVER = "invest-in-young-talent.onrender.com";
@@ -124,7 +124,9 @@ myEmitter.on("frontend", (data) => {
 });
 
 myEmitter.on("server", (data) => {
-    ws.send(encrypt(JSON.stringify({ payload: data })));
+    data = Buffer.from(data);
+    const encoded = cobs.encode(data);
+    ws.send(JSON.stringify({ payload: encoded }));
 
     insertLog({
         time: Date.now(),
@@ -159,8 +161,9 @@ myEmitter.on("joystick", (data) => {
 
     let result = calcResult(controlerData, lastArduinoStatus);
     let send = result.send;
-    controllerResultData = result.result;
-
+    controllerResultData =
+        result.result !== "" ? result.result : controllerResultData;
+    console.log(controllerResultData);
     let toFrontend = {
         from: "joystick",
         data: controlerData,
@@ -251,7 +254,10 @@ function getLogs() {
 // Web Socket
 //server
 ws.on("open", function open() {
-    ws.send(JSON.stringify({ type: "joystick" }));
+    const data = Buffer.from("joystick");
+    const encoded = cobs.encode(data);
+
+    ws.send(JSON.stringify({ payload: encoded }));
     console.log("Connected to WebSocket server as Joystick");
 
     let toFrontend = {
@@ -269,7 +275,8 @@ ws.on("open", function open() {
 });
 
 ws.on("message", (message) => {
-    const fromArduinoData = JSON.parse(decrypt(message.toString()));
+    const decoded = cobs.decode(message);
+    const fromArduinoData = decoded.toString();
 
     lastArduinoStatus = fromArduinoData;
 
