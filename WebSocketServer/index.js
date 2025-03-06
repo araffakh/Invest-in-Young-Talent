@@ -13,7 +13,12 @@ const io = socketIo(server, {
     },
 });
 
-app.use(cors());
+app.use(
+    cors({
+        origin: "*",
+        methods: ["GET", "POST"],
+    })
+);
 
 io.on("connection", (socket) => {
     console.log("جهاز متصل");
@@ -35,4 +40,4 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(10000, () => console.log("السيرفر يعمل على المنفذ 5000"));
+server.listen(10000, () => console.log("السيرفر يعمل على المنفذ 10000"));
