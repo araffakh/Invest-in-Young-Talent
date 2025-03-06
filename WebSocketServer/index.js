@@ -1,46 +1,37 @@
-// server.js
-const { createServer } = require("http");
-const WebSocket = require("ws");
-const cobs = require("cobs");
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
+const cors = require("cors");
 
-const server = createServer();
-const WebSocketServer = new WebSocket.Server({ server: server });
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: "http://localhost:3000", // السماح للواجهة بالاتصال
+        methods: ["GET", "POST"]
+    }
+});
 
-let joyStickClient = null;
-let arduinoClient = null;
-const PORT = process.env.PORT || 3000;
-console.log("port " + process.env.PORT);
+app.use(cors());
 
-WebSocketServer.on("connection", (ws) => {
-    ws.on("message", (message) => {
-        const data = JSON.parse(message.toString());
-        const decoded = cobs.decode(data.payload.data).toString();
+io.on("connection", (socket) => {
+    console.log("جهاز متصل");
 
-        // Identify client type
-        if (decoded === "joystick") {
-            console.log("Joystick connected");
-            joyStickClient = ws;
-        } else if (decoded === "arduino") {
-            console.log("Arduino connected");
-            arduinoClient = ws;
-        } else {
-            // Forward messages
-            const data = Buffer.from(decoded);
-            const encoded = cobs.encode(data);
-            if (ws === joyStickClient && arduinoClient) {
-                arduinoClient.send(encoded);
-            } else if (ws === arduinoClient && joyStickClient) {
-                joyStickClient.send(encoded);
-            }
-        }
+    socket.on("offer", (offer) => {
+        socket.broadcast.emit("offer", offer);
     });
 
-    ws.on("close", () => {
-        if (ws === joyStickClient) joyStickClient = null;
-        if (ws === arduinoClient) arduinoClient = null;
+    socket.on("answer", (answer) => {
+        socket.broadcast.emit("answer", answer);
+    });
+
+    socket.on("ice-candidate", (candidate) => {
+        socket.broadcast.emit("ice-candidate", candidate);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("جهاز انفصل");
     });
 });
 
-server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+server.listen(5000, () => console.log("السيرفر يعمل على المنفذ 5000"));
