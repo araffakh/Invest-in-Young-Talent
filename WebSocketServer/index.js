@@ -4,12 +4,13 @@ const socketIo = require("socket.io");
 const cors = require("cors");
 
 const app = express();
+
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:3000", // السماح للواجهة بالاتصال
-        methods: ["GET", "POST"]
-    }
+        origin: "*", // السماح للواجهة بالاتصال
+        methods: ["GET", "POST"],
+    },
 });
 
 app.use(cors());
@@ -34,4 +35,4 @@ io.on("connection", (socket) => {
     });
 });
 
-server.listen(5000, () => console.log("السيرفر يعمل على المنفذ 5000"));
+server.listen(10000, () => console.log("السيرفر يعمل على المنفذ 5000"));
